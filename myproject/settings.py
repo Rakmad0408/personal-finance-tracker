@@ -5,14 +5,16 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-your-secret-key-replace-in-production'
+# Reads the key from Render, fallback used only for safe local development environment
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-fallback-local-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# For initial deployment testing, we'll keep this True so you can see errors if they happen.
-DEBUG = True
+# Automatically resolves to False on Render if you provide DJANGO_DEBUG=False
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') != 'False'
 
-# Allow local testing environments and any subdomains on Render
+# Authorized URLs allowed to safely serve traffic
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com']
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -23,11 +25,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Third-party packages
+    # Third-party extensions
     'rest_framework',
     'corsheaders',
     
-    # Local application components
+    # Local application models & modules
     'accounts',
     'transactions',
     'budgets',
@@ -36,8 +38,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Handles optimized static assets in production
-    'corsheaders.middleware.CorsMiddleware',        # Must be placed high up to handle CORS preflight checks
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Optimizes static asset processing on live networks
+    'corsheaders.middleware.CorsMiddleware',        # Must be loaded early to check incoming client scripts
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -66,13 +68,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'myproject.wsgi.application'
 
-# Database configuration (using SQLite locally/Render persistent disk or ephemeral environment)
+
+# Database Configuration
+# Uses default SQLite engine locally and maps reliably inside unified workspace structures
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -90,16 +95,19 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
 # Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+
+# Static files infrastructure setup
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# WhiteNoise storage layout optimization engine
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -109,14 +117,15 @@ STORAGES = {
     },
 }
 
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS Configurations
-# Set this to True to allow your React application to connect from anywhere initially
-CORS_ALLOW_ALL_ORIGINS = True 
 
-# If you choose to use custom token-based auth headers, this ensures they are parsed correctly
+# Cross-Origin Resource Sharing (CORS) rules setup
+# Allows incoming connections from all endpoints initially to facilitate React frontend connections
+CORS_ALLOW_ALL_ORIGINS = True
+
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
